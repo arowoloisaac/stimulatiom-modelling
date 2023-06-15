@@ -1,0 +1,56 @@
+import numpy as np
+
+# Define the number of teams in the tournament
+num_teams = 10
+
+# Create a list of team labels
+teams = [chr(i) for i in range(65, 65 + num_teams)]
+
+# Create a schedule of matches using round-robin scheduling
+schedule = []
+for i in range(num_teams):
+    for j in range(i + 1, num_teams):
+        matches = [(teams[i], teams[j], 'H'), (teams[j], teams[i], 'A')]
+        schedule += matches * 2  # 2 legs for each match
+
+# Define the mean number of goals per team per match
+mean_goals = 1.5
+
+# Simulate the tournament using Poisson distribution
+results = {}
+for team in teams:
+    results[team] = {'points': 0, 'goals_for': 0, 'goals_against': 0}
+for home_team, away_team, leg in schedule:
+    # Generate the number of goals for each team using Poisson distribution
+    home_goals = np.random.poisson(mean_goals)
+    away_goals = np.random.poisson(mean_goals)
+
+    # Update the results for each team based on the number of goals scored
+    results[home_team]['goals_for'] += home_goals
+    results[home_team]['goals_against'] += away_goals
+    results[away_team]['goals_for'] += away_goals
+    results[away_team]['goals_against'] += home_goals
+
+    if home_goals > away_goals:
+        results[home_team]['points'] += 3
+    elif home_goals < away_goals:
+        results[away_team]['points'] += 3
+    else:
+        results[home_team]['points'] += 1
+        results[away_team]['points'] += 1
+
+    # Display the score for each match
+    print(f'{home_team} {home_goals} - {away_goals} {away_team} ({leg})')
+
+    with open('notes.txt', 'a') as file:
+        file.write(f'{home_team} {home_goals} - {away_goals} {away_team} ({leg}) \n')
+
+# Sort the teams by the number of points they earned
+ranked_teams = sorted(teams, key=lambda x: results[x]['points'], reverse=True)
+
+
+# Print the final results
+print('Rank\tTeam\tPoints\tGoals For\tGoals Against')
+for i, team in enumerate(ranked_teams):
+    print(
+        f'{i + 1}\t\t{team}\t\t{results[team]["points"]}\t\t{results[team]["goals_for"]}\t\t\t{results[team]["goals_against"]}')

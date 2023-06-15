@@ -1,0 +1,57 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import chi2, norm
+
+# Parameters for the normal distribution
+mean = 0
+std_dev = 1
+sample_size = 1000
+
+# Generate the random sample
+random_sample = np.random.normal(loc=mean, scale=std_dev, size=sample_size)
+
+
+# when calculated value is bigger/less than the value from table what does it mean
+# what can you tell about the result of my program according to the answer from the above question
+
+# Calculate the mean and variance of the sample
+sample_mean = np.mean(random_sample)
+sample_variance = np.var(random_sample)
+
+# Calculate the mean error and variance error
+mean_error = np.abs(sample_mean - mean) / np.sqrt(sample_size)
+variance_error = np.abs(sample_variance - std_dev**2) / np.sqrt(2*(sample_size-1))
+
+print(f"Sample mean: {sample_mean}")
+print(f"Sample variance: {sample_variance}")
+print(f"Mean error: {mean_error}")
+print(f"Variance error: {variance_error}")
+
+# Perform a chi-squared goodness of fit test
+num_bins = 50
+observed_counts, bin_edges = np.histogram(random_sample, bins=num_bins)
+expected_counts = [((norm.cdf(bin_edges[i+1], mean, std_dev) -
+                     norm.cdf(bin_edges[i], mean, std_dev)) * sample_size)
+                   for i in range(num_bins)]
+
+# Compute the chi-squared statistic and p-value
+chi_squared_stat = np.sum((observed_counts - expected_counts)**2 / expected_counts)
+p_value = 1 - chi2.cdf(chi_squared_stat, num_bins - 1)
+
+print(f"Chi-squared statistic: {chi_squared_stat}")
+print(f"P-value: {p_value}")
+
+
+# Plot the histogram
+plt.hist(random_sample, bins=50, density=True, alpha=0.6, color='g')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.title('Histogram of Normal Random Variable')
+
+# Overlay the normal distribution curve
+xmin, xmax = plt.xlim()
+x = np.linspace(xmin, xmax, 100)
+pdf = norm.pdf(x, mean, std_dev)
+plt.plot(x, pdf, 'k', linewidth=2)
+
+plt.show()
